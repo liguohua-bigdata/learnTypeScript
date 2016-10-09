@@ -7,4 +7,4 @@ http://www.cnblogs.com/tansm/p/TypeScript_Handbook_BasicTypes.html
 https://www.gitbook.com/book/oyyd/typescript-handbook-zh/details
 
 ###2.doc的代码产生于官方文档
-http://www.tslang.cn/docs/handbook/basic-types.html
+http://www.tslang.cn/docs/handbook/basic-types.html# learnTypeScript
