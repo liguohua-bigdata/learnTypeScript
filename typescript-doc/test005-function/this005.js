@@ -1,20 +1,33 @@
-/**
- * Created by liguohua on 16/10/10.
- */
-var this005;
-(function (this005) {
-    var _this = this;
-    var deck = {
-        suits: ["hearts", "spades", "clubs", "diamonds"],
-        cards: Array(52),
-        // NOTE: The function now explicitly specifies that its callee must be of type Deck
-        createCardPicker: , this: Deck }, _a = (void 0).return,  = _a === void 0 ? function () {
-        var pickedCard = Math.floor(Math.random() * 52);
-        var pickedSuit = Math.floor(pickedCard / 13);
-        return { suit: _this.suits[pickedSuit], card: pickedCard % 13 };
-    } : _a;
-    var cardPicker = deck.createCardPicker();
-    var pickedCard = cardPicker();
-    alert("card: " + pickedCard.card + " of " + pickedCard.suit);
-})(this005 || (this005 = {}));
+// /**
+//  * Created by liguohua on 16/10/10.
+//  */
+// namespace this005{
+//
+//     interface Card {
+//         suit: string;
+//         card: number;
+//     }
+//     interface Deck {
+//         suits: string[];
+//         cards: number[];
+//         createCardPicker(this: Deck): () => Card;
+//     }
+//
+//     let deck: Deck = {
+//             suits: ["hearts", "spades", "clubs", "diamonds"],
+//             cards: Array(52),
+//             // NOTE: The function now explicitly specifies that its callee must be of type Deck
+//             createCardPicker: function(this: Deck) {
+//         return () => {
+//             let pickedCard = Math.floor(Math.random() * 52);
+//             let pickedSuit = Math.floor(pickedCard / 13);
+//
+//             return {suit: this.suits[pickedSuit], card: pickedCard % 13};
+//         }
+//     }
+//     let cardPicker = deck.createCardPicker();
+//     let pickedCard = cardPicker();
+//
+//     alert("card: " + pickedCard.card + " of " + pickedCard.suit);
+// } 
 //# sourceMappingURL=this005.js.map
