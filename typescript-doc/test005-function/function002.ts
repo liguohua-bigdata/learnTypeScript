@@ -55,8 +55,8 @@ namespace function002 {
     /**
      *可选参数
      TypeScript里的每个函数参数都是必须的。 简短地说，传递给一个函数的参数个数必须与函数期望的参数个数一致。
-     在TypeScript里我们可以在参数名旁使用 ?实现可选参数的功能.
-     可选参数必须跟在必须参数后
+     在TypeScript里我们可以在参数名旁使用 ?实现可选参数的功能.可选参数必须跟在必须参数后.
+     剩余参数会被当做个数不限的可选参数。 可以一个都没有，同样也可以有任意个。
      */
     console.info("*************")
     function buildName(firstName:string, lastName?:string) {
@@ -76,7 +76,8 @@ namespace function002 {
     /**
      * 默认参数
      * 我们也可以为参数提供一个默认值当用户没有传递这个参数或传递的值是undefined时。 它们叫做有默认初始化值的参数。
-     * 在所有必须参数后面的带默认初始化的参数都是可选的，与可选参数一样，在调用函数的时候可以省略。 也就是说可选参数与末尾的默认参数共享参数类型。
+     * 在所有必须参数后面的带默认初始化的参数都是可选的，与可选参数一样，在调用函数的时候可以省略。
+     * 也就是说可选参数与末尾的默认参数共享参数类型。
      * @param firstName
      * @param lastName
      * @returns {string}
@@ -121,5 +122,32 @@ namespace function002 {
     console.info(result33);
     let result34 = buildName3(undefined, "Adams");     // okay and returns "Will Adams"
     console.info(result34);
+
+    /**
+     *剩余参数
+     必要参数，默认参数和可选参数有个共同点：它们表示某一个参数。
+     有时，你想同时操作多个参数，或者你并不知道会有多少参数传递进来。
+     在JavaScript里，你可以使用 arguments来访问所有传入的参数。
+     * @param firstName
+     * @param restName
+     * @returns {string}
+     */
+    console.info("*************")
+    function buildName4(firstName:string, ...restName:string[]) {
+        return firstName + " " + restName.join(" ");
+    }
+
+    console.info(buildName4("zhang", 'san', 'feng'))
+
+    /**
+     * 剩余参数的类型推导
+     */
+    console.info("*************")
+    function buildName5(firstName: string, ...restOfName: string[]) {
+        return firstName + " " + restOfName.join(" ");
+    }
+
+    let buildNameFun: (fname: string, ...rest: string[]) => string = buildName5;
+    console.info(buildName5("zhang", 'san', 'feng'))
 
 }

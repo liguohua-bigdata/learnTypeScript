@@ -1,0 +1,959 @@
+
+
+<!DOCTYPE HTML><html lang="zh-CN"><head><meta charset="UTF-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1"/><meta name="renderer" content="webkit"/><meta property="qc:admins" content="15317273575564615446375"/><meta property="og:image" content="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/touch-icon.png"/><meta name="viewport"
+              content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/><meta name="alexaVerifyID" content="LkzCRJ7rPEUwt6fVey2vhxiw1vQ"/><meta name="apple-itunes-app" content="app-id=958101793, app-argument="><title>不再彷徨：完全弄懂JavaScript中的this（译文总结） - 前端学习笔记 - SegmentFault</title><meta name="description" content="其实this是一个老生常谈的问题了。关于this的文章非常多，其实我本以为自己早弄明白了它，不过昨天在做项目的过程中，还是出现了一丝疑惑，想到大概之前在JavaScript weekly里收藏待看的一篇详解this的文章（后有..."/><meta name="keywords" content="this,javascript"/><link rel="search" type="application/opensearchdescription+xml" href="/opensearch.xml" title="SegmentFault"/><link rel="shortcut icon" href="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/favicon.ico"/><link rel="apple-touch-icon" href="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/touch-icon.png"><meta name="msapplication-TileColor" content="#009a61"/><meta name="msapplication-square150x150logo" content="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/touch-icon.png"/><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新问题" href="/feeds/questions"><link rel="alternate" type="application/atom+xml" title="SegmentFault 最新文章" href="/feeds/blogs"><link rel="stylesheet" href="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/css/global.css"/><link rel="stylesheet" href="https://sf-static.b0.upaiyun.com/v-57fb22ae/blog/css/blog.css"/><link rel="stylesheet" href="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/css/responsive.css"/><!--[if lt IE 9]><link rel="stylesheet" href="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/css/ie.css"/><script src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/script/html5shiv.js"></script><script src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/script/respond.js"></script><![endif]--><script src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/script/debug.js"></script></head><body data-mod="blog"
+    class="blog-post "><!--[if lt IE 9]><div class="alert alert-danger topframe" role="alert">你的浏览器实在<strong>太太太太太太旧了</strong>，放学别走，升级完浏览器再说 <a target="_blank" class="alert-link" href="http://browsehappy.com">立即升级</a></div><![endif]--><img id="icon4weChat" style="height: 0;width: 0;" data-src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/touch-icon-512.png"><img id="icon4weChat" data-src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/touch-icon-512.png"><div class="global-nav sf-header"><nav class="container nav"><div class="hidden-sm hidden-lg hidden-md"><div class="sf-header__logo sf-header__logo--response"><h1><a></a></h1></div><div class="dropdown m-menu"><a href="javascript:void(0);" id="dLabel" class="visible-xs-block m-toptools"
+           data-toggle="dropdown"
+           aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-align-justify"></span><span class="mobile-menu__unreadpoint"></span></a><ul class="dropdown-menu" role="menu" aria-labelledby="dLabel"><li class="mobile-menu__item"><a href="/news">头条</a></li><li class="mobile-menu__item"><a href="/questions/newest">问答</a></li><li class="mobile-menu__item"><a href="/blogs">文章</a></li><li class="mobile-menu__item"><a href="/user/note">笔记</a></li><li class="mobile-menu__item"><a href="/jobs">职位</a></li><li class="mobile-menu__item"><a href="/events">活动</a></li><li class="mobile-menu__item"><a href="/tags">标签</a></li><li class="mobile-menu__item"><a href="/users">榜单</a></li><li class="mobile-menu__item"><a href="/sites">子站</a></li></ul></div><a href="/user/login" class="visible-xs-block pull-right m-ask m-toptools"><span
+                    class="glyphicon glyphicon-log-in"></span></a></div><div class="row hidden-xs"><div class="col-sm-9 col-md-7 col-lg-6"><div class="sf-header__logo"><h1><a href="/">SegmentFault</a></h1></div><ul class="menu list-inline pull-left hidden-xs"><li class="menu__item menu__item--new"><a href="/news">头条</a></li><li class="menu__item"><a href="/questions">问答</a></li><li class="menu__item"><a href="/blogs">专栏</a></li><li class="menu__item"><a href="/jobs">职位</a></li><li class="menu__item"><a href="/events">活动</a></li></ul></div><div class="col-sm-3 col-md-5 col-lg-6 text-right"><form action="/search" class="header-search  hidden-sm hidden-xs mr20"><button class="btn btn-link"><span class="sr-only">搜索</span><span class="glyphicon glyphicon-search"></span></button><input id="searchBox" name="q" type="text" placeholder="输入关键字搜索" class="form-control"
+                                   value=""/></form><ul class="opts list-inline hidden-xs"><li class="opts__item message has-unread"><a target="_blank" href="/tour"><span class="sr-only">消息</span><span id="messageCount" class="fa fa-hand-peace-o"></span></a></li><li class="opts__item"><a href="/user/login" class="SFLogin em ml10"
+                                       onClick="_gaq.push(['_trackEvent', 'Button', 'Click', 'Login']);">注册 &middot;
+                                        登录</a></li></ul></div></div></nav></div><div class="global-navTags"><div class="container"><nav class=" nav"><ul class="nav__list"><li class="nav__item"><a href="/"><i class="fa fa-home"></i>home
+                            </a></li><li class="nav__item"><a href="/timeline"><i class="fa fa-list-alt"></i>feed
+                            </a></li><li class="nav__item nav__item--split"><a><span class="split"></span></a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/javascript">javascript</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/php">php</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/python">python</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/java">java</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/mysql">mysql</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/ios">ios</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/android">android</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/node.js">node.js</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/html5">html5</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/linux">linux</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/c%2B%2B">c++</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/css3">css3</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/git">git</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/golang">golang</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/ruby">ruby</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/vim">vim</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/docker">docker</a></li><li class="nav__item tag-nav__item"><a
+                                                                                href="/t/mongodb">mongodb</a></li><li class="nav__item nav__item--more" data-open="0"><a class="nav__item--more-link"
+                                                                               href="/tags"><div class="tag__more"><i class="tag__more--icon"></i><i class="tag__more--icon"></i><i class="tag__more--icon"></i></div></a></li></ul><div class="tag-mgr__box hide"><input class="tag-mgr__query" type="text" placeholder="搜索关注的标签"
+                               data-tags='null'><div class="mCustomScrollbar" data-mcs-theme="minimal-dark"><ul class="tag-mgr__list"></ul></div><a href="/tags" class="btn btn-primary btn-sm tag-mgr__btn">标签管理</a></div></nav></div></div>
+    <div class="wrap">
+    <div class="post-topheader custom-">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9 col-sm-8 col-xs-12">
+                    <span class="post-topheader__title--icon-symbol">文</span>
+
+                    <div class="post-topheader__info" data-username="zhangwang" data-userslug="zhangwang"
+                         data-useravatar="https://sfault-avatar.b0.upaiyun.com/278/772/2787724954-5695bc46c1306_big64">
+
+                        <h1 class="h3 post-topheader__info--title" id="articleTitle" data-id="1190000006076637">
+
+                                                <a href="/a/1190000006076637"> 不再彷徨：完全弄懂JavaScript中的this（译文总结）</a>
+                                            </h1>
+
+                        <ul class="taglist--inline inline-block article__title--tag mr10">
+                                                            <li class="tagPopup mb5"><a class="tag" href="/t/this/blogs" data-toggle="popover"
+                                                        data-img="" data-placement="top"
+                                                        data-original-title="this"
+                                                        data-id="1040000000501210">this</a></li>
+                                                            <li class="tagPopup mb5"><a class="tag" href="/t/javascript/blogs" data-toggle="popover"
+                                                        data-img="https://sfault-avatar.b0.upaiyun.com/195/823/1958237468-1040000000089436_huge256" data-placement="top"
+                                                        data-original-title="javascript"
+                                                        data-id="1040000000089436">javascript</a></li>
+                                                    </ul>
+
+                        <div class="article__author">
+                        <a href="/u/zhangwang" class="mr5 "><strong>zhangwang</strong></a>
+                        7月26日发布
+                                                                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-4 hidden-xs">
+                    <ul class="post-topheader__side list-unstyled">
+                        <li>
+                                                                                                <button type="button" class="btn btn-success btn-sm" data-id="1190000006076637"
+                                            id="sideLike">推荐
+                                    </button>
+                                                                                        <strong id="sideLiked">4</strong> 推荐
+                        </li>
+                        <li>
+                                                                                                <button type="button" id="sideBookmark" class="btn btn-default btn-sm"
+                                            data-id="1190000006076637" data-id="1190000006076637" data-type="article">收藏
+                                    </button>
+                                                                                        <strong id="sideBookmarked">79</strong> 收藏，<strong
+                                    class="no-stress">2.1k</strong> 浏览
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div><!-- end .post-topheader -->
+
+    <div class="container mt30">
+        <div class="row">
+            <div class="col-xs-12 col-md-9 main ">
+
+                                                <div class="article fmt article__content" data-id="1190000006076637" data-license="cc">
+                    
+<blockquote><p>其实this是一个老生常谈的问题了。关于this的文章非常多，其实我本以为自己早弄明白了它，不过昨天在做项目的过程中，还是出现了一丝疑惑，想到大概之前在JavaScript weekly里收藏待看的一篇详解this的文章（后有链接，也附上了稀土上的中文译文）和另一篇一位前辈推荐的文章，就把它们看了看，对this的认识确实提升了一些。</p></blockquote>
+<p>JavaScript 中的’this‘是动态的，它在函数运行时被确定而非在函数声明时被确定。所有的函数都可以调用'this'，这无关于该函数是否属于某个对象。关于this，主要有以下四种情况。</p>
+<h3>1.被当做对象的方法被调用</h3>
+<p>如果该函数是被当做某一个对象的方法，那么该函数的this指向该对象；</p>
+<pre><code class="javascript">    var john = {
+      firstName: "John"
+    }
+    function func() {
+      alert(this.firstName + ": hi!")
+    }
+    john.sayHi = func
+    john.sayHi()  // this = john</code></pre>
+<p>这里有一点值得注意，当一个对象的方法被取出来赋值给一个变量时，该方法变为函数触发，this指向window或underfind（严格模式）。</p>
+<h3>2.函数之内调用</h3>
+<p>当函数中有 <code>this</code>，其实就意味着它被当做方法调用，之间调用相当于把他当做window对象的方法，this指向window，值得注意的是ES5其实是规定这种情况<code>this=undefined</code>的，只浏览器大多还是按照老的方法执行(本人在最新版的Chrome，Safari，Firefox中测试都指向window（201607）),在火狐下使用严格模式指向undefined；</p>
+<pre><code class="javascript">    func()
+    function func() {
+        alert(this) // [object Window] or [object global] or kind of..
+    }</code></pre>
+<p>为了传递<code>this</code>，()之前应该为引用类型，类似于<code>obj.a </code>或者 <code>obj['a']</code>,不能是别的了。</p>
+<p>这里还存在一个小坑，当对象的方法中还存在函数时，该函数其实是当做函数模式触发，所以其<code>this</code>默认为window（严格模式下为undefined）解决办法是给该函数绑定this。</p>
+<pre><code class="javascript">var numbers = {  
+   numberA: 5,
+   numberB: 10,
+   sum: function() {
+     console.log(this === numbers); // =&gt; true
+     function calculate() {
+       // this is window or undefined in strict mode
+       console.log(this === numbers); // =&gt; false
+       return this.numberA + this.numberB;
+     }
+     return calculate();
+   }
+};
+numbers.sum(); // =&gt; NaN or throws TypeError in strict mode  </code></pre>
+<pre><code class="javascript">var numbers = {  
+   numberA: 5,
+   numberB: 10,
+   sum: function() {
+     console.log(this === numbers); // =&gt; true
+     function calculate() {
+       console.log(this === numbers); // =&gt; true
+       return this.numberA + this.numberB;
+     }
+     // use .call() method to modify the context
+     return calculate.call(this);
+   }
+};
+numbers.sum(); // =&gt; 15  </code></pre>
+<h3>3.在<code>new</code>中调用</h3>
+<p>一个引用对象的变量实际上保存了对该对象的引用，也就是说变量实际保存的是对真实数据的一个指针。<br>使用new关键字时<code>this</code>的改变其实有以下几步：</p>
+<ul>
+<li><p>创建 <code>this = {}</code>.</p></li>
+<li><p>new执行的过程中可能改变<code>this</code>，然后添加属性和方法；</p></li>
+<li><p>返回被改变的<code>this</code>.</p></li>
+</ul>
+<pre><code class="javascript">    function Animal(name) {
+        this.name = name
+        this.canWalk = true
+    }
+    var animal = new Animal("beastie")
+    alert(animal.name)</code></pre>
+<p>需要注意的是如果构造函数返回一个对象，那么this指向返回的那个对象；</p>
+<pre><code class="javascript">    function Animal() {
+        this.name = 'Mousie';
+        this.age = '18';
+        return {
+            name: 'Godzilla'
+        } // &lt;-- will be returned
+    }
+
+    var animal = new Animal()
+    console.log(animal.name) // Godzilla
+    console.log(animal.age)//undefined</code></pre>
+<p>这里需要注意的是不要忘记使用new，否则不会创建一个新的函数。而是只是执行了函数，相当于函数调用，this其实指向window</p>
+<pre><code class="javascript">function Vehicle(type, wheelsCount) {  
+  this.type = type;
+  this.wheelsCount = wheelsCount;
+  return this;
+}
+// Function invocation
+var car = Vehicle('Car', 4);  
+car.type;       // =&gt; 'Car'  
+car.wheelsCount // =&gt; 4  
+car === window  // =&gt; true </code></pre>
+<h3>4.明确调用<code>this</code>，使用<code>call</code>和<code>apply</code>
+</h3>
+<p>这是最具JavaScript特色的地方。<br>如下代码：</p>
+<pre><code>  func.call(obj, arg1, arg2,...)</code></pre>
+<p>第一个参数将作为<code>this</code>的指代对象，之后的参数将被作为函数的参数，解决方法是使用bind。</p>
+<pre><code class="javascript">function Animal(type, legs) {  
+  this.type = type;
+  this.legs = legs;  
+  this.logInfo = function() {
+    console.log(this === myCat); // =&gt; true
+    console.log('The ' + this.type + ' has ' + this.legs + ' legs');
+  };
+}
+var myCat = new Animal('Cat', 4);  
+// logs "The Cat has 4 legs"
+setTimeout(myCat.logInfo.bind(myCat), 1000); 
+// setTimeout??</code></pre>
+<pre><code class="javascript">  var john = {
+    firstName: "John",
+    surname: "Smith"
+  }
+  function func(a, b) {
+    alert( this[a] + ' ' + this[b] )
+  }
+  func.call(john, 'firstName', 'surname')  // "John Smith"
+</code></pre>
+<p>至于apply，其只是以数组的方传入参数，其它部分是一样的，如下:</p>
+<pre><code class="javascript">  func.call(john, 'firstName', 'surname')
+  func.apply(john, ['firstName', 'surname'])</code></pre>
+<p>它们也可用于在 ES5 中的类继承中，调用父级构造器。</p>
+<pre><code class="javascript">    function Runner(name) {  
+      console.log(this instanceof Rabbit); // =&gt; true
+      this.name = name;  
+    }
+    function Rabbit(name, countLegs) {  
+      console.log(this instanceof Rabbit); // =&gt; true
+      // 间接调用，调用了父级构造器
+      Runner.call(this, name);
+      this.countLegs = countLegs;
+    }
+    var myRabbit = new Rabbit('White Rabbit', 4);  
+    myRabbit; // { name: 'White Rabbit', countLegs: 4 }</code></pre>
+<h3>5.<code>.bind()</code>
+</h3>
+<p>对比方法 .apply() 和 .call()，它俩都立即执行了函数，而 .bind() 函数返回了一个新方法，绑定了预先指定好的 this ，并可以延后调用。<br>.bind() 方法的作用是创建一个新的函数，执行时的上下文环境为 .bind() 传递的第一个参数，它允许创建预先设置好 this 的函数。</p>
+<pre><code class="javascript">var numbers = {  
+  array: [3, 5, 10],
+  getNumbers: function() {
+    return this.array;    
+  }
+};
+// Create a bound function
+var boundGetNumbers = numbers.getNumbers.bind(numbers);  
+boundGetNumbers(); // =&gt; [3, 5, 10]  
+// Extract method from object
+var simpleGetNumbers = numbers.getNumbers;  
+simpleGetNumbers(); // =&gt; undefined or throws an error in strict mode  </code></pre>
+<p>使用<code>.bind()</code>时应该注意，.bind() 创建了一个永恒的上下文链并不可修改。一个绑定函数即使使用 .call() 或者 .apply()传入其他不同的上下文环境，也不会更改它之前连接的上下文环境，重新绑定也不会起任何作用。<br>只有在构造器调用时，绑定函数可以改变上下文，然而这并不是特别推荐的做法。</p>
+<h3>6.箭头函数</h3>
+<p>箭头函数并不创建它自身执行的上下文，使得 this 取决于它在定义时的外部函数。<br>箭头函数一次绑定上下文后便不可更改，即使使用了上下文更改的方法：</p>
+<pre><code class="javascript">    var numbers = [1, 2];  
+    (function() {  
+      var get = () =&gt; {
+        console.log(this === numbers); // =&gt; true
+        return this;
+      };
+      console.log(this === numbers); // =&gt; true
+      get(); // =&gt; [1, 2]
+      // 箭头函数使用 .apply() 和 .call()
+      get.call([0]);  // =&gt; [1, 2]
+      get.apply([0]); // =&gt; [1, 2]
+      // Bind
+      get.bind([0])(); // =&gt; [1, 2]
+    }).call(numbers);</code></pre>
+<p>这是因为箭头函数拥有静态的上下文环境，不会因为不同的调用而改变。因此不要使用箭头函数定义方法</p>
+<pre><code class="javascript">function Period (hours, minutes) {  
+      this.hours = hours;
+      this.minutes = minutes;
+    }
+    Period.prototype.format = () =&gt; {  
+      console.log(this === window); // =&gt; true
+      return this.hours + ' hours and ' + this.minutes + ' minutes';
+    };
+    var walkPeriod = new Period(2, 30);  
+    walkPeriod.format(); // =&gt; 'undefined hours and undefined minutes' </code></pre>
+<h3>参考</h3>
+<ul>
+<li><p><a href="http://javascript.info/tutorial/this">Four scents of "this"</a></p></li>
+<li><p><a href="https://rainsoft.io/gentle-explanation-of-this-in-javascript/?utm_source=javascriptweekly&amp;utm_medium=email">Gentle explanation of 'this' keyword in JavaScript</a></p></li>
+<li><p><a href="https://gold.xitu.io/entry/576d640d2e958a005724e07f">JavaScript This 之谜(译文)</a></p></li>
+</ul>
+<p>强烈推荐觉得没弄明白的同学看看上面三篇文章，其中第三篇是第二篇的译文。如果大家对this还有疑问，也欢迎大家一起讨论，交流促进思考，共同进步。</p>
+
+                </div>
+                                                
+                <div class="clearfix mt10">
+
+                    <ul class="article-operation list-inline pull-left">
+                        <li><a href="/a/1190000006076637" class="text-muted">7月26日发布</a></li>
+                                                                                                                            <li class="dropdown js__content-ops" data-module="article"
+                                data-id="1190000006076637"
+                                data-typetext="文章">
+                                <a href="javascript:void(0);" class="dropdown-toggle text-muted" data-toggle="dropdown">更多<b
+                                            class="caret"></b></a>
+                                <ul class="dropdown-menu dropdown-menu-left">
+                                    <li><a href="#911"
+                                           data-toggle="modal"
+                                           data-target="#911"
+                                           data-action="report"
+                                           >举报</a></li>
+                                                                                                                                                                                                    
+                                                                    </ul>
+                            </li>
+                                            </ul>
+                </div>
+
+                <div class="text-center mt10">
+                    
+                        <button type="button" id="mainLike" data-id="1190000006076637"
+                                class="btn btn-success btn-lg mr10">
+                            4 推荐
+                        </button>
+                    
+                                            <button type="button" id="mainBookmark" data-type="article" data-id="1190000006076637"
+                                class="btn btn-default btn-lg ">
+                            收藏
+                        </button>
+                                    </div>
+
+                                    <div class="recommend-post pt30 mt40 mb30 border-top">
+                        <div class="row">
+                            <div class="col-md-8">
+                                                                <h4 class="mt0">你可能感兴趣的文章</h4>
+                                <ul class="widget-links list-unstyled">
+                                                                            <li class="widget-links__item">
+                                            <a href="/a/1190000002784760" title="关于“深入浅出 React Native：使用 JavaScript 构建原生应用”">关于“深入浅出 React Native：使用 JavaScript 构建原生应用”</a>
+                                            <small class="text-muted">
+                                                1 收藏，768
+                                                浏览
+                                            </small>
+                                        </li>
+                                                                            <li class="widget-links__item">
+                                            <a href="/a/1190000002960285" title="Backbone View 之间通信的三种方式">Backbone View 之间通信的三种方式</a>
+                                            <small class="text-muted">
+                                                38 收藏，4k
+                                                浏览
+                                            </small>
+                                        </li>
+                                                                            <li class="widget-links__item">
+                                            <a href="/a/1190000002476232" title="5个JavaScript小脚本测试你对JavaScript了解多少？">5个JavaScript小脚本测试你对JavaScript了解多少？</a>
+                                            <small class="text-muted">
+                                                11 收藏，1.7k
+                                                浏览
+                                            </small>
+                                        </li>
+                                                                    </ul>
+                                                            </div>
+                            <div class="col-md-4">
+                                                            </div>
+                        </div>
+
+                    </div>
+                                <!-- <ul class="list-unstyled text-muted mt30">
+                                        <li>上一篇：<a href="/a/1190000006056285">JavaScript数据类型中易被忽略的点</a></li>
+                                                            <li class="mt5">下一篇：<a href="/a/1190000006178770">入门 Webpack，看这篇就够了</a></li>
+                                    </ul> -->
+
+                <h2 class="h4 post-comment-title">讨论区</h2>
+                <div class="widget-comments" id="comment-1190000006076637" data-id="1190000006076637">
+            <div class="widget-comments__item hover-show" id="1050000006147985">
+            <div class="votes widget-vote">
+                <button class="like" data-id="1050000006147985" type="button"
+                    data-do="like" data-type="comment"></button>
+                <span class="count">+0</span>
+            </div>
+            <div class="comment-content">
+                                                <div class="content fmt">
+                    <p>还是一知半解，不懂详细原因。不过还是要感谢！</p>
+                </div>
+                <p class="comment-meta">
+                    <a href="/c/1050000006147985" class="text-muted"></a>
+                    <a href="/u/adolt"
+                       class="commentUser"
+                       data-userid="1030000006113248"
+                       data-username="Adolt"
+                       data-userslug=""
+                       data-useravatar="">
+                        <strong>Adolt</strong>
+                    </a>
+                    &middot;
+                    8月2日
+
+                <span class="pull-right commentTools hover-show-obj">
+                                            <a href="javascript:void(0);" class="commentReply" data-userid="1030000006113248"
+                            data-id="1050000006147985" data-username="Adolt">
+                            <span class="glyphicon glyphicon-share-alt flipx" aria-hidden="true"></span>
+                        </a>
+                                                                                                </span>
+                </p>
+            </div>
+        </div>
+            <div class="widget-comments__item hover-show" id="1050000006148003">
+            <div class="votes widget-vote">
+                <button class="like" data-id="1050000006148003" type="button"
+                    data-do="like" data-type="comment"></button>
+                <span class="count">+0</span>
+            </div>
+            <div class="comment-content">
+                                                    <span>回复 <a href="/u/adolt"
+                                target="_blank">Adolt</a>：</span>
+                                <div class="content fmt">
+                    <p>链接的最后一篇文章讲得非常详细，推荐看看</p>
+                </div>
+                <p class="comment-meta">
+                    <a href="/c/1050000006148003" class="text-muted"></a>
+                    <a href="/u/zhangwang"
+                       class="commentUser"
+                       data-userid="1030000004078811"
+                       data-username="zhangwang"
+                       data-userslug=""
+                       data-useravatar="">
+                        <strong>zhangwang</strong>
+                    </a>
+                    &middot;
+                    8月2日
+
+                <span class="pull-right commentTools hover-show-obj">
+                                            <a href="javascript:void(0);" class="commentReply" data-userid="1030000004078811"
+                            data-id="1050000006148003" data-username="zhangwang">
+                            <span class="glyphicon glyphicon-share-alt flipx" aria-hidden="true"></span>
+                        </a>
+                                                                                                </span>
+                </p>
+            </div>
+        </div>
+            <div class="widget-comments__item hover-show" id="1050000006148103">
+            <div class="votes widget-vote">
+                <button class="like" data-id="1050000006148103" type="button"
+                    data-do="like" data-type="comment"></button>
+                <span class="count">+0</span>
+            </div>
+            <div class="comment-content">
+                                                    <span>回复 <a href="/u/zhangwang"
+                                target="_blank">zhangwang</a>：</span>
+                                <div class="content fmt">
+                    <p>好的</p>
+                </div>
+                <p class="comment-meta">
+                    <a href="/c/1050000006148103" class="text-muted"></a>
+                    <a href="/u/adolt"
+                       class="commentUser"
+                       data-userid="1030000006113248"
+                       data-username="Adolt"
+                       data-userslug=""
+                       data-useravatar="">
+                        <strong>Adolt</strong>
+                    </a>
+                    &middot;
+                    8月2日
+
+                <span class="pull-right commentTools hover-show-obj">
+                                            <a href="javascript:void(0);" class="commentReply" data-userid="1030000006113248"
+                            data-id="1050000006148103" data-username="Adolt">
+                            <span class="glyphicon glyphicon-share-alt flipx" aria-hidden="true"></span>
+                        </a>
+                                                                                                </span>
+                </p>
+            </div>
+        </div>
+            <div class="widget-comments__item hover-show" id="1050000006596733">
+            <div class="votes widget-vote">
+                <button class="like" data-id="1050000006596733" type="button"
+                    data-do="like" data-type="comment"></button>
+                <span class="count">+0</span>
+            </div>
+            <div class="comment-content">
+                                                <div class="content fmt">
+                    <p>虽然比较绕，但是细细品来还是可以理解的。谢谢分享</p>
+                </div>
+                <p class="comment-meta">
+                    <a href="/c/1050000006596733" class="text-muted"></a>
+                    <a href="/u/isunlei"
+                       class="commentUser"
+                       data-userid="1030000004962916"
+                       data-username="isunlei"
+                       data-userslug=""
+                       data-useravatar="">
+                        <strong>isunlei</strong>
+                    </a>
+                    &middot;
+                    8月16日
+
+                <span class="pull-right commentTools hover-show-obj">
+                                            <a href="javascript:void(0);" class="commentReply" data-userid="1030000004962916"
+                            data-id="1050000006596733" data-username="isunlei">
+                            <span class="glyphicon glyphicon-share-alt flipx" aria-hidden="true"></span>
+                        </a>
+                                                                                                </span>
+                </p>
+            </div>
+        </div>
+                <a href="javascript:void(0);" class="comments showMoreComments" data-id="1190000006076637"
+       data-target="#comment-1190000006076637">展开评论</a>
+
+    <div class="widget-comments__form row hidden">
+        
+                            <form class="clearfix SFLogin" method="POST" >
+                    <div class="form-group mb0 widget-comments__form--input">
+                        <input name="id" type="hidden" value="1190000006076637"/>
+                        <textarea rows="1"                                     name="text"
+                                    class="SFLogin form-control mono" id="commentText-1190000006076637" data-id="1190000006076637"
+                                    placeholder="使用评论询问更多信息或提出修改意见，请不要在评论里回答问题"></textarea>
+
+                    </div>
+                    <div class="widget-comments__btn">
+                        <div class="pull-right">
+                            <button type="submit" class="btn btn-default postComment"
+                                    data-id="1190000006076637"
+                                     >提交评论
+                            </button>
+                            <span class="widget-comments__btn--tips"><a href="javascript:void(0);"
+                                class="toggle-comment-helper"
+                                title="语法提示">
+                            <i class="fa fa-question-circle"></i>
+                        </a></span>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-md-12">
+                    <div class="alert alert-warning alert-dismissible mb0 mt10 fmt comment-helper" data-rank="" style="display:none;" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="right:0;"><span aria-hidden="true">&times;</span></button>
+                        评论支持部分 Markdown 语法：<code>**bold**</code> <code>_italic_</code>
+                        <code>[link](http://example.com)</code> <code>> 引用</code> <code>`code`</code> <code>-
+                        列表</code>。<br>同时，被你 @ 的用户也会收到通知
+                    </div>
+                </div>
+            
+        </div><!-- /.widget-comments__form -->
+            </div><!-- /.widget-comments -->
+
+    
+
+                                    
+                
+            </div><!-- /.main -->
+
+
+            <div class="col-xs-12 col-md-3 side">
+                <div class="sfad-sidebar">
+      <div class="sfad-item">
+    <ins data-revive-zoneid="2" data-revive-block="1" data-revive-target="_blank" data-revive-ct0='1476088640' data-revive-id="0042ddc520dc895b7aa784fe6f9339bd"></ins>
+    <button class="close" type="button" aria-hidden="true">&times;</button>
+</div>
+
+  </div>
+
+
+                <div class="widget-box no-border">
+                    <p class="text-muted">本文隶属于专栏</p>
+                    <h4 class="fz16"><a href="/blog/qdbj">前端学习笔记</a></h4>
+
+                    <p class="wordbreak">这是我在前端学习中所做的笔记，也许这些笔记可以见证，我从前端菜鸟到老鸟之路。</p>
+
+
+                    <div class="article__widget--author">
+                        <a href="/u/zhangwang">
+                            <img class="avatar-40" src="https://sfault-avatar.b0.upaiyun.com/278/772/2787724954-5695bc46c1306_big64" alt="zhangwang">
+                        </a>
+                        <a href="/u/zhangwang">
+                            zhangwang
+                        </a>
+                        <p class="text-muted mb0">作者</p>
+
+                                                    <div style="margin-top: 20px;">
+                                                                    <button type="button mb20"
+                                            class="btn btn-default follow-article"
+                                            data-do="follow"
+                                            data-type="blog"
+                                            data-id="1200000004133816">关注专栏
+                                    </button>
+                                                            </div>
+                        
+
+                    </div>
+
+                </div>
+
+
+                
+                    <div data-type="widget" data-api="/api/bookmarkArchive/hots" data-api-overwrite="/api/bookmarkArchive/1190000006076637/related">
+        <script type="text/template">
+            <div class="widget-box widget-box--bookmark no-border">
+                <h4 class="widget-box__title">相关收藏夹 <a id="widgetBookmarkRefresh" class="userstab pull-right"
+                                                          href="javascript:;">换一组</a></h4>
+                <ul class="widget-links list-unstyled media">
+                    <% _.each(data,function(d){ %>
+                    <li class="widget-links__item">
+                        <img class="pull-left pattern pattern-<%= d.id%19 %> mr10" src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/pattern/<%= d.id%10 ? d.id%10 : 10 %>.svg" width="32">
+                        <div class="media-body">
+                            <a target="_blank" class="ellipsis mr0" href="<%- d.url %>"><%= d.name %></a>
+                            <p class="mb0">
+                                <span><%- d.num %></span> 个条目 <span class="division">|</span> <span><%- d.followers %></span> 人关注
+                            </p>
+                        </div>
+                    </li>
+                    <% }) %>
+                </ul>
+            </div>
+        </script>
+    </div>
+
+
+                <div class="widget-share__full" data-text="不再彷徨：完全弄懂JavaScript中的this（译文总结）"
+ data-url="https://segmentfault.com/a/1190000006076637" data-shorturl="http://sfau.lt/b5zEYr"></div>
+
+                <div class="post-nav hidden-xs">
+                    <div class="panel panel-default widget-outline">
+                        <div class="panel-heading">文章目录</div>
+                        <div class="panel-body">
+                            <div class="nav-body">
+                                <div class="highlight-title"></div>
+                                <ul class="articleIndex"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /.side -->
+        </div>
+    </div>
+</div>
+
+<div id="shareToWeiboModal" class="modal" tabindex='-1'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">分享</h4>
+            </div>
+            <div class="modal-body">
+                <p class="sfModal-content">
+                    分享到微博？
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default dont-likeweibo" data-dismiss="modal">取消</button>
+                <a href="" id="shareLink" class="btn btn-primary done-btn" target="_blank"
+                   onclick="$('#shareToWeiboModal').modal('hide')">分享</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+<script type="text/template" id="regNext">
+        <div class="row flex-vertical-center">
+        <div class="col-md-12">
+            <p class="mb0" style="font-size: 14px; margin-right:50px; font-family: Source Code Pro,Consolas,Menlo,Monaco,Courier New,monospace;">
+                    void segment(int <img width="22" src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/emojis/mengbi.jpg"/> ){    segment();    } 
+            </p>
+            <button class="btn btn-primary SFLogin mr10"
+                    onclick='ga("send", "event", "join button", "clicked", "footer welcome popup");'>segment
+            </button>
+            <button class="btn  btn-default  tomorrow"><img width="22" src="https://sf-static.b0.upaiyun.com/v-57fb22ae/global/img/emojis/mengbi.jpg"/></button>
+        </div>
+        
+    </div>
+</script>
+
+<div class="hidden widget-register widget-welcome-question mt20 hidden-xs widget-welcome widget-register-slideUp">
+    <div class="container">
+        <div class="row flex-vertical-center">
+            <div class="col-sm-12 col-md-8">
+                <p class="mb0">
+                                                                技术专栏，帮你记录编程中的点滴，提升你对技术的理解<br>收藏感兴趣的文章，丰富自己的知识库
+                                    </p>
+
+            </div>
+            <div class="col-sm-12 col-lg-3 col-lg-offset-1 col-md-4">
+                <button class="btn btn-primary btn-lg SFLogin  mr10"
+                        onclick='ga("send", "event", "join button", "clicked", "footer welcome popup");'>立即注册
+                </button>
+                <button class="btn btn-lg btn-default  tomorrow">明天提醒我</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal widget-911" id="911" tabindex='-1'>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close" data-dismiss="modal" type="button">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title"><span data-model="action"></span><span data-model="type"></span></h4>
+      </div>
+      <div class="modal-body">
+        <form id="reportForm">
+          <!-- 后台返回信息 -->
+          <p class="alert alert-warning" data-model="returnMsg"></p>
+          <div data-role="base">
+            <p>
+              <strong class="required">我要<span data-model="action"></span>该<span data-model="type"></span>，理由是：</strong>
+            </p>
+            <ul class="list-unstyled" data-model="list"></ul>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default pull-left" type="button" data-role="back" style="display:none">返回重选</button>
+                <button class="btn btn-default" data-dismiss="modal" type="button">取消</button>
+        <button class="btn btn-primary" data-role="submit" type="button">提交</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<footer id="footer">
+    <div class="container">
+        <div class="row hidden-xs">
+            <dl class="col-sm-2 site-link">
+                <dt>网站相关</dt>
+                <dd><a href="/about">关于我们</a></dd>
+                <dd><a href="/tos">服务条款</a></dd>
+                <dd><a href="/faq">帮助中心</a></dd>
+                <dd><a href="/repu">声望与权限</a></dd>
+                <dd><a href="/markdown">编辑器语法</a></dd>
+                <dd><a href="//weekly.segmentfault.com/">每周精选</a></dd>
+                <dd><a href="/app">App 下载</a></dd>
+            </dl>
+            <dl class="col-sm-2 site-link">
+                <dt>联系合作</dt>
+                <dd><a href="/contact">联系我们</a></dd>
+                <dd><a href="/hiring">加入我们</a></dd>
+                <dd><a href="/link">合作伙伴</a></dd>
+                <dd><a href="/press">媒体报道</a></dd>
+                <dd><a href="https://board.segmentfault.com/">建议反馈</a></dd>
+                            </dl>
+            <dl class="col-sm-2 site-link">
+                <dt>常用链接</dt>
+                                                <dd><a href="//chrome.google.com/webstore/detail/segmentfault-%E7%AC%94%E8%AE%B0/pjklfdmleagfaekibdccmhlhellefcfo" target="_blank">笔记插件: Chrome</a></dd>
+                                                                <dd><a href="//addons.mozilla.org/zh-CN/firefox/addon/sf-note-ext/" target="_blank">笔记插件: Firefox</a></dd>
+                                                                <dd>订阅：<a href="/feeds">问答</a> / <a href="/feeds/blogs">文章</a></dd>
+                                                                <dd><a href="//mirrors.segmentfault.com/" target="_blank">文档镜像</a></dd>
+                                                                <dd><a href="//segmentfault.com/blog/interview" target="_blank">社区访谈</a></dd>
+                                                                <dd><a href="//segmentfault.com/d-day" target="_blank">D-DAY 技术沙龙</a></dd>
+                                                                <dd><a href="//segmentfault.com/hackathon" target="_blank">黑客马拉松 Hackathon</a></dd>
+                                                                <dd><a href="//namebeta.com/" target="_blank">域名搜索注册</a></dd>
+                                            </dl>
+            <dl class="col-sm-2 site-link">
+                <dt>关注我们</dt>
+                                <dd><a href="//github.com/SegmentFault" target="_blank">Github</a></dd>
+                                <dd><a href="//twitter.com/segment_fault" target="_blank">Twitter</a></dd>
+                                <dd><a href="http://weibo.com/segmentfault" target="_blank">新浪微博</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_team" target="_blank">团队日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault" target="_blank">产品技术日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/community_admin" target="_blank">社区运营日志</a></dd>
+                                <dd><a href="//segmentfault.com/blog/segmentfault_news" target="_blank">市场运营日志</a></dd>
+                            </dl>
+            <dl class="col-sm-4 site-link" id="license">
+                <dt>内容许可</dt>
+                <dd>除特别说明外，用户内容均采用 <a rel="license" target="_blank" href="http://creativecommons.org/licenses/by-sa/3.0/cn/">知识共享署名-相同方式共享 3.0 中国大陆许可协议</a> 进行许可
+                </dd>
+                <dd>本站由 <a target="_blank" href="https://www.upyun.com/?utm_source=segmentfault&utm_medium=link&utm_campaign=upyun&md=segmentfault">又拍云</a> 提供 CDN 存储服务
+                </dd>
+            </dl>
+        </div>
+        <div class="copyright">
+            Copyright &copy; 2011-2016 SegmentFault. 当前呈现版本 16.10.08<br>
+            <a href="http://www.miibeian.gov.cn/" rel="nofollow">浙ICP备 15005796号-2</a> &nbsp;
+            <a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=33010602002000" rel="nofollow">浙公网安备 33010602002000号</a>
+        </div>
+        <p class="text-center">
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="mobile" href="javascript:;">移动版</a>
+            <a class="js__view--selector hidden-sm hidden-md hidden-lg" data-action="desktop" href="javascript:;">桌面版</a>
+        </p>
+    </div>
+</footer>
+
+<div id="fixedTools" class="hidden-xs hidden-sm">
+    <a id="backtop" class="hidden border-bottom" href="#">回顶部</a>
+
+    <div class="qrcodeWraper">
+        <a href="/app#qrcode"><span class="glyphicon glyphicon-qrcode"></span></a>
+        <img id="qrcode" class="border" alt="sf-wechat" src="https://sf-static.b0.upaiyun.com/v-57fb22ae/page/img/app/appQrcode.png">
+
+        <p class="qrcode-text">扫扫下载 App</p>
+    </div>
+</div>
+
+<div class="app-promotion-bar">
+    <a href="javascript:;"><i class="fa fa-close close"></i></a>
+    <div class="icon"></div>
+    <h5 class="title h5">SegmentFault</h5>
+    <p class="describe">一起探索更多未知</p>
+    <a class="download-btn btn btn-sm btn-primary" href="/app#qrcode">下载 App</a>
+</div>
+
+<script id="loginModal" type="text/template">
+<div class="row bg-white login-modal">
+    <div class="col-md-4 col-sm-12 col-md-push-7 login-wrap">
+        <h1 class="h4 text-muted login-title">用户登录</h1>
+        <form action="/api/user/login" method="POST" role="form" class="mt30">
+            <div class="form-group">
+                <label class="control-label">Email</label>
+                <input type="email" class="form-control" name="mail" autocomplete="off" required placeholder="hello@segmentfault.com">
+            </div>
+            <div class="form-group">
+                <label class="control-label">密码</label>
+                <input type="password" class="form-control" name="password" required placeholder="密码">
+            </div>
+            <div class="form-group clearfix">
+                <div class="checkbox pull-left">
+                    <label><input name="remember" type="checkbox" value="1" checked> 记住登录状态</label>
+                </div>
+                <button type="submit" class="btn btn-primary pull-right pl20 pr20" onclick='ga("send", "event", "email login button", "clicked", "login modal");'>登录</button>
+            </div>
+        </form>
+        <p class="h4 text-muted visible-xs-block h4">快速登录</p>
+        <div class="widget-login mt30">
+            <p class="text-muted mt5 mr10 pull-left hidden-xs">快速登录</p>
+            <a href="/user/oauth/google" class="btn btn-default btn-sm btn-sn-google" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "google"});'><span class="icon-sn-bg-google"></span> <strong class="visible-xs-inline">Google 账号</strong></a>
+            <a href="/user/oauth/github" class="btn btn-default btn-sm btn-sn-github" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "github"});");'><span class="icon-sn-bg-github"></span> <strong class="visible-xs-inline">Github 账号</strong></a>
+            <a href="/user/oauth/weibo" class="btn btn-default btn-sm btn-sn-weibo" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "weibo"});'><span class="icon-sn-bg-weibo"></span> <strong class="visible-xs-inline">新浪微博账号</strong></a>
+            <a href="/user/oauth/qq" class="btn btn-default btn-sm btn-sn-qq" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span class="icon-sn-bg-qq"></span> <strong class="visible-xs-inline">QQ 账号</strong></a>
+            <a href="/user/oauth/weixin" class="btn btn-default btn-sm btn-sn-weixin" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "qq"});'><span class="icon-sn-bg-weixin"></span> <strong class="visible-xs-inline">微信账号</strong></a>
+            <button id="loginShowMore" href="javascript:void(0);" class="btn mb5 btn-default btn-sm btn-sn-dotted"><span class="icon-sn-bg-dotted"></span><strong class="visible-xs-inline">•••</strong></button>
+            <a href="/user/oauth/twitter" class="btn btn-default btn-sn-twitter btn-sm hidden" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "twitter"});'><span class="icon-sn-bg-twitter"></span> <strong class="visible-xs-inline">Twitter 账号</strong></a>
+            <a href="/user/oauth/facebook" class="btn btn-default btn-sn-facebook btn-sm hidden" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "facebook"});'><span class="icon-sn-bg-facebook"></span> <strong class="visible-xs-inline">Facebook 账号</strong></a>
+            <a href="/user/oauth/douban" class="btn btn-default btn-sn-douban btn-sm hidden" onclick='ga("send", "event", "3rd login button", "clicked", "login modal", {media: "douban"});'><span class="icon-sn-bg-douban"></span> <strong class="visible-xs-inline">豆瓣账号</strong></a>
+        </div>
+    </div>
+    <div class="login-vline hidden-xs hidden-sm"></div>
+    <div class="col-md-4 col-md-pull-3 col-sm-12 login-wrap">
+        <h1 class="h4 text-muted login-title">创建新账号</h1>
+        <form action="/api/user/register" method="POST" role="form" class="mt30">
+            <div class="form-group">
+                <label for="name" class="control-label">用户名</label>
+                <input type="text" class="form-control" name="name" required placeholder="字母、数字等，用户名唯一">
+            </div>
+            <div class="form-group">
+                <label for="mail" class="control-label">Email</label>
+                <input type="hidden" style="display:none" name="mail">
+                <input type="email" autocomplete="off" class="form-control register-mail" name="mail" required autocomplete="off" placeholder="hello@segmentfault.com">
+            </div>
+            <div class="form-group">
+                <label for="password" class="control-label">密码</label>
+                <input type="password" class="form-control" name="password" required placeholder="不少于 6 位">
+            </div>
+            <div class="form-group" style="display:none;">
+                <label class="required control-label">验证码</label>
+                <input type="text" class="form-control" id="captcha" name="captcha" placeholder="请输入下方的验证码">
+                <div class="mt10"><a id="loginReloadCaptcha"  href="javascript:void(0)"><img data-src="/user/captcha?w=240&h=50" class="captcha" width="240" height="50" /></a></div>
+            </div>
+            <div class="form-group clearfix">
+                <div class="checkbox pull-left">
+                    同意并接受<a href="/tos" target="_blank">《服务条款》</a>
+                </div>
+                <button type="submit" class="btn btn-primary pl20 pr20 pull-right" onclick='ga("send", "event", "email register button", "clicked", "login modal");'>注册</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="text-center text-muted mt30">
+    <a href="/user/forgot" class="ml5">找回密码</a>
+</div>
+</script>
+
+
+
+<script>
+    (function (w) {
+        w.SF = {
+            staticUrl: "https://sf-static.b0.upaiyun.com/v-57fb22ae"
+        };
+        w.SF.token = (function () {
+    var _Zvd = //'if'
+'c4'+//'l'
+'35a'+'a0'//'6Wb'
++//'nCp'
+'f0'+//'Z'
+'50'+//'L89'
+'3b'+'70'//'9O'
++'daf'//'EAF'
++//'q'
+'8'+'3'//'3'
++'4'//'Q'
++'5b4'//'7'
++'5'//'pYv'
++'5'//'eu'
++//'y1i'
+'8'+'7b'//'V'
++//'1'
+'10'+'66'//'A'
+, _jzu = [[19,20]];
+
+    for (var i = 0; i < _jzu.length; i ++) {
+        _Zvd = _Zvd.substring(0, _jzu[i][0]) + _Zvd.substring(_jzu[i][1]);
+    }
+
+    return _Zvd;
+})();;
+    })(window);
+
+                var lock = {
+        type: "",
+        text: '',
+        table: {"ban_post":[1,"\u4f60\u5df2\u7ecf\u88ab\u7981\u8a00, \u65e0\u6cd5\u8fdb\u884c\u6b64\u64cd\u4f5c, \u5982\u6709\u7591\u4e49\u8bf7\u63d0\u4ea4\u7533\u8bc9, \u6216\u8005\u53d1\u90ae\u4ef6\u5230pr@segmentfault.com"]}
+    };
+</script>
+
+    <script crossorigin src="https://sf-static.b0.upaiyun.com/v-57fb22ae/3rd/assets.js"></script>
+    <script crossorigin src="https://sf-static.b0.upaiyun.com/v-57fb22ae/blog/script/post.min.js"></script>
+
+<script async src="//sponsor.segmentfault.com/asyncjs.php"></script>
+
+<script>
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-918487-8']);
+    _gaq.push(['_trackPageview']);
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            
+        
+
+            
+
+    ga('create', 'UA-918487-8', 'auto', {
+        'userID'
+    : 0,
+        'createdTime'
+    : 0,
+        'now'
+    : 1476088640 });
+    ga('set', 'dimension1', 'guest');
+    ga('send', 'pageview');
+
+</script>
+
+<script type='text/javascript'>
+    var _vds = _vds || [];
+    window._vds = _vds;
+    (function() {
+        _vds.push(['setAccountId', '5411b7ab1ae040ed9a4eb4a120a06ead']);
+        (function() {
+            var vds = document.createElement('script');
+            vds.type = 'text/javascript';
+            vds.async = true;
+            vds.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'dn-growing.qbox.me/vds.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(vds, s);
+        })();
+    })();
+</script>
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "//hm.baidu.com/hm.js?e23800c454aa573c0ccb16b52665ac26";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+</body>
+</html>

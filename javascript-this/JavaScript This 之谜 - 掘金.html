@@ -1,0 +1,788 @@
+<!DOCTYPE html><html xmlns:wb="http://open.weibo.com/wb"><head><title>JavaScript This 之谜 - 掘金</title><meta charset="utf-8"><link rel="apple-touch-icon" sizes="57x57" href="/favicons/apple-touch-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/favicons/apple-touch-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/favicons/apple-touch-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/favicons/apple-touch-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/favicons/apple-touch-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/favicons/apple-touch-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/favicons/apple-touch-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/favicons/apple-touch-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon-180x180.png"><link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32"><link rel="icon" type="image/png" href="/favicons/android-chrome-192x192.png" sizes="192x192"><link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96"><link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16"><link rel="manifest" href="/favicons/manifest.json"><link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#007fff"><link rel="shortcut icon" href="/favicons/favicon.ico"><meta name="msapplication-TileColor" content="#007fff"><meta name="msapplication-TileImage" content="favicons/mstile-144x144.png"><meta name="msapplication-config" content="favicons/browserconfig.xml"><meta name="theme-color" content="#007fff"><meta name="keywords" content="稀土掘金,掘金,移动开发,Android开发,iOS开发,前端开发,后端开发,产品设计,资源下载,React.js,vue.js,node.js,编程,程序员,开发者,设计师,产品经理,Hacker News,ECMAScript,开源,Github"><meta name="description" content="【英文翻译】 JavaScript this 的详细分析 Gentle explanation of 'this' keyword in JavaScript（http://rainsoft.io/gentle-explanation-of-this-in-javascript/）"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><meta property="wb:webmaster" content="592d5aa78e3ec93b"><meta name="apple-itunes-app" content="app-id=987739104"><link href="/build/entry-content.css" rel="stylesheet"></head><body>       <header><div class="container clearfix"><ul class="actions"><li class="action action-image"><a href="/"><img src="/images/logo-header.svg" class="inline home-logo"></a></li></ul><ul class="actions secondary"><li class="action action-image"><a href="/welcome"><button class="inline login">注册 / 登录</button></a></li><li class="action dropdown header-dropdown"><i class="ion-ios-more header-icon"></i><ul class="dropdown-list"><li><a href="/app" target="_blank">下载应用</a></li><li><a href="/about" target="_blank">关于我们</a></li><li><a href="/i-want-u" target="_blank">加入我们</a></li><li><a href="/partners" target="_blank">合作伙伴</a></li><li><a href="https://github.com/xitu/gold-miner" target="_blank">翻译计划</a></li></ul></li></ul></div></header><script>(function(){
+    var dropdown = document.querySelector('.header-dropdown')
+    dropdown.addEventListener('click', function(e) {
+        let target = e.target
+        let ele = e.currentTarget
+        let ul = ele.querySelector('.dropdown-list')
+        let lis = ul.querySelectorAll('li')
+        while (target.parentNode != ele) {
+            if (!target.parentNode || target.parentNode == ul) return
+            target = target.parentNode
+        }
+        ele.classList.contains('open') ? ele.classList.remove('open') : ele.classList.add('open')
+        for (let i = 0; i < lis.length; i++) {
+            let li = lis[i]
+            li.addEventListener('click', (e) => ele.classList.remove('open'))
+        }
+        e.stopPropagation()
+    })
+})();</script><div class="container entry-view entry-share-view"><div style="background-image: linear-gradient(rgba(0, 0, 0, .1), rgba(0, 0, 0, 0)), url(http://ac-mhke0kuv.clouddn.com/86f0b3286004fd4094d8.jpg?imageView/2/w/800/h/600/q/80/format/png), url(http://ac-mhke0kuv.clouddn.com/86f0b3286004fd4094d8.jpg?imageView/2/w/80/h/60/q/80/format/png)" class="entry-hero"></div><a href="https://github.com/zchen9/code/issues/1" rel="nofollow"><h2 class="entry-title">JavaScript This 之谜</h2></a><p><small class="entry-meta"><span class="action">阅读 1690</span><span class="action">收藏 119</span><span class="action">2016-6-25</span></small></p><div class="share-by"><div class="ellipsis"><span>作者：</span><a href="https://github.com/zchen9/code/issues/1" target="_blank" class="share-link">zchen9</a>，<span>原文链接：</span><a href="https://github.com/zchen9/code/issues/1" target="_blank" class="share-link">https://github.com/zchen9/code/issues/1</a></div><div class="share-content">【英文翻译】 JavaScript this 的详细分析 Gentle explanation of 'this' keyword in JavaScript（http://rainsoft.io/gentle-explanation-of-this-in-javascript/） —— 由 <a href="https://gold.xitu.io/user/55969bd3e4b0c4d3e6f2faae" target="_blank" class="share-link">照澄辰</a> 分享</div></div><div class="entry-content"><div><div>
+          <p>原文：<a href="http://rainsoft.io/gentle-explanation-of-this-in-javascript/">Gentle explanation of 'this' keyword in JavaScript</a> </p>
+
+
+
+<h3>1. 迷之 <code>this</code>
+</h3>
+
+<p>对于刚开始进行 JavaScript 编程的开发者来说，<code>this</code> 具有强大的魔力，它像谜团一样需要工程师们花大量的精力去真正理解它。</p>
+
+<p>在后端的一些编程语言中，例如 <code>Java</code>、<code>PHP</code>，<code>this</code>仅仅是类方法中当前对象的一个实例，它不能在方法外部被调用，这样一个简单的法则并不会造成任何疑惑。</p>
+
+<p>在 JavaScript 中，<code>this</code> 是指当前函数中正在执行的上下文环境，因为这门语言拥有四种不同的函数调用类型：</p>
+
+<ul>
+<li>函数调用 <code>alert(&#039;Hello World!&#039;)</code>
+</li>
+<li>方法调用 <code>console.log(&#039;Hello World!&#039;)</code>
+</li>
+<li>构造函数调用 <code>new RegExp(&#039;\\d&#039;)</code>
+</li>
+<li>间接调用 <code>alert.call(undefined, &#039;Hello World&#039;)</code>
+</li>
+</ul>
+
+<p>在以上每一项调用中，它都拥有各自独立的上下文环境，就会造成 <code>this</code> 所指意义有所差别。此外，严格模式也会对执行环境造成影响。</p>
+
+<p>理解 <code>this</code> 关键字的关键在于理解各种不同的函数调用以及它是如何影响上下文环境的。<br>
+这篇文章旨在解释不同情况下的函数调用会怎样影响 <code>this</code> 以及判断上下文环境时会产生的一些常见陷阱。</p>
+
+<p>在开始讲述之前，先熟悉以下一些术语：</p>
+
+<ul>
+<li>
+<strong>调用</strong> 是执行当前函数主体的代码，即调用一个函数。例：<code>parseInt</code> 函数的调用为 <code>parseInt(15)</code>
+</li>
+<li>
+<strong>上下文环境</strong> 是方法调用中 <code>this</code> 所代表的值</li>
+<li>
+<strong>作用域</strong> 是一系列方法内可调用到的变量，对象，方法组成的集合</li>
+</ul>
+
+<h3>2. 函数调用</h3>
+
+<p><strong>函数调用</strong> 代表了该函数接收以成对的引号包含，用逗号分隔的不同参数组成的表达式。举例：<code>parseInt(&#039;18&#039;)</code>。这个表达式不能是属性访问如 <code>myObject.myFunction</code> 这样会造成方法调用。<code>[1, 5].join(&#039;,&#039;)</code> 同样也不是一个函数调用而是方法调用。</p>
+
+<p>函数调用的一个简单例子：</p>
+
+<div><pre><code>    function hello(name) {
+      return &#039;Hello&#039; + name + &#039;!&#039;;
+    }
+    // 函数调用
+    var message = hello(&#039;World&#039;);
+    console.log(message); // =&gt; &#039;Hello World!&#039;</code></pre></div>
+
+<p><code>hello(&#039;World&#039;)</code> 是一个函数调用：<code>hello</code>表达式代表了一个函数对象，接受了用成对引号包含的 <code>World</code> 参数。</p>
+
+<p>高级一点的例子，立即执行函数 IIFE (immediately-invoked function expression)：</p>
+
+<div><pre><code>    var message = (function(name) {  
+      return &#039;Hello &#039; + name + &#039;!&#039;;
+    })(&#039;World&#039;);
+    console.log(message) // =&gt; &#039;Hello World!&#039; </code></pre></div>
+
+<h4>2.1. 函数调用中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is the <strong>global object</strong> in a function invocation</p>
+</blockquote>
+
+<p>全局对象取决于当前执行环境，在浏览器中，全局对象即 <code>window</code>。</p>
+
+<p>在函数调用中，上下文执行环境是全局对象，可以在以下函数中验证上下文：</p>
+
+<div><pre><code>    function sum(a, b) {  
+      console.log(this === window); // =&gt; true
+      this.myNumber = 20; // 在全局对象中添加 &#039;myNumber&#039; 属性
+      return a + b;
+    }
+    // sum() 为函数调用
+    // this 在 sum() 中是全局对象 (window)
+    sum(15, 16);     // =&gt; 31  
+    window.myNumber; // =&gt; 20  </code></pre></div>
+
+<p>当 <code>sum(15, 16)</code> 被调用时，JavaScript 自动将 <code>this</code> 设置为全局对象，即 <code>window</code>。</p>
+
+<p>当 <code>this</code> 在任何函数作用域以外调用时（最外层作用域：全局执行上下文环境），也会涉及到全局对象。</p>
+
+<div><pre><code>    console.log(this === window); // =&gt; true  
+    this.myString = &#039;Hello World!&#039;;  
+    console.log(window.myString); // =&gt; &#039;Hello World!&#039;  </code></pre></div>
+
+<div><pre><code>    &lt;!-- 在 HTML 文件里 --&gt;  
+    &lt;script type=&quot;text/javascript&quot;&gt;  &lt;/script&gt;
+      console.log(this === window); // =&gt; true
+      </code></pre></div>
+
+<h4>2.2. 严格模式下，函数调用中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is <strong>undefined</strong> in a function invocation in strict mode</p>
+</blockquote>
+
+<p>严格模式由 <a href="http://www.ecma-international.org/ecma-262/5.1/#sec-10.1.1">ECMAScript 5.1</a> 引进，用来限制 JavaScript 的一些异常处理，提供更好的安全性和更强壮的错误检查机制。使用严格模式，只需要将 <code>&#039;use strict&#039;</code> 置于函数体的顶部。这样就可以将上下文环境中的 <code>this</code> 转为 <code>undefined</code>。这样执行上下文环境不再是全局对象，与非严格模式刚好相反。</p>
+
+<p>在严格模式下执行函数的一个例子：</p>
+
+<div><pre><code>    function multiply(a, b) {  
+      &#039;use strict&#039;; // 开启严格模式
+      console.log(this === undefined); // =&gt; true
+      return a * b;
+    }
+    // 严格模式下的函数调用 multiply() 
+    // this 在 multiply() 中为 undefined
+    multiply(2, 5); // =&gt; 10 </code></pre></div>
+
+<p>当 <code>multiply(2, 5)</code> 执行时，这个函数中的 <code>this</code> 是 <code>undefined</code>。</p>
+
+<p>严格模式不仅在当前作用域起到作用，它还会影响内部作用域，即内部声明的一切内部函数的作用域。</p>
+
+<div><pre><code>
+    function execute() {  
+      &#039;use strict&#039;; // 开启严格模式
+      function concat(str1, str2) {
+        // 内部函数也是严格模式
+        console.log(this === undefined); // =&gt; true
+        return str1 + str2;
+      }
+      // 在严格模式下调用 concat()
+      // this 在 concat() 下是 undefined
+      concat(&#039;Hello&#039;, &#039; World!&#039;); // =&gt; &quot;Hello World!&quot;
+    }
+    execute();  </code></pre></div>
+
+<p><code>use strict</code> 被插入函数执行主体的顶部，使严格模式可以控制到整个作用域。因为 <code>concat</code> 在执行作用域内部声明，因此它继承了严格模式。此外，<code>concat(&#039;Hello&#039;, &#039; World!&#039;)</code> 的调用中，<code>this</code> 也会成为 <code>undefined</code>。</p>
+
+<p>一个简单的 JavaScript 文件可能同时包含严格模式和非严格模式，所以在同一种类型调用中，可能也会有不同的上下文行为差异。</p>
+
+<div><pre><code>    function nonStrictSum(a, b) {  
+      // 非严格模式
+      console.log(this === window); // =&gt; true
+      return a + b;
+    }
+    function strictSum(a, b) {  
+      &#039;use strict&#039;;
+      // 严格模式
+      console.log(this === undefined); // =&gt; true
+      return a + b;
+    }
+    // nonStrictSum() 在非严格模式下被调用
+    // this 在 nonStrictSum() 中是 window 对象
+    nonStrictSum(5, 6); // =&gt; 11  
+    // strictSum() 在严格模式下被调用
+    // this 在 strictSum() 中是 undefined
+    strictSum(8, 12); // =&gt; 20  </code></pre></div>
+
+<h4>2.3. 陷阱：<code>this</code> 在内部函数中</h4>
+
+<p>一个常见的陷阱是理所应当的认为函数调用中的，内部函数中 <code>this</code> 等同于它的外部函数中的 <code>this</code>。</p>
+
+<p>正确的理解是内部函数的上下文环境取决于调用环境，而不是外部函数的上下文环境。</p>
+
+<p>为了获取到所期望的 <code>this</code>，应该利用间接调用修改内部函数的上下文环境，如使用 <code>.call()</code> 或者 <code>.apply</code> 或者创建一个绑定函数 <code>.bind()</code>。</p>
+
+<p>下面的例子表示计算两个数之和：</p>
+
+<div><pre><code>
+    var numbers = {  
+      numberA: 5,
+      numberB: 10,
+      sum: function() {
+        console.log(this === numbers); // =&gt; true
+        function calculate() {
+          // 严格模式下， this 是 window or undefined
+          console.log(this === numbers); // =&gt; false
+          return this.numberA + this.numberB;
+        }
+        return calculate();
+      }
+    };
+    numbers.sum(); // =&gt; 严格模式下，结果为 NaN 或者 throws TypeError  </code></pre></div>
+
+<p><code>numbers.sum()</code> 是对象内的一个方法调用，因此 <code>sum</code> 的上下文是 <code>numbers</code> 对象，而 <code>calculate</code> 函数定义在 <code>sum</code> 函数内，所以会误以为在 <code>calculate</code> 内 <code>this</code> 也指向的是 <code>numbers</code>。</p>
+
+<p>然而 <code>calculate()</code> 在函数调用（而不是作为方法调用）时，此时的 <code>this</code> 指向的是全局对象 <code>window</code> 或者在严格模式下指向 <code>undefined</code> ，即使外部函数 <code>sum</code> 拥有 <code>numbers</code>对象作上下文环境，它也没有办法影响到内部的 <code>this</code>。</p>
+
+<p><code>numbers.sum()</code> 调用的结果是 <code>NaN</code> 或者在严格模式下直接抛出错误 <code>TypeError: Cannot read property &#039;numberA&#039; of undefined</code>，而绝非期待的结果 <code>5 + 10 = 15</code>，造成这样的原因是 <code>calculate</code> 并没有正确的被调用。</p>
+
+<p>为了解决这个问题，正确的方法是使 <code>calculate</code> 函数被调用时的上下文同 <code>sum</code> 调用时一样，为了得到属性 <code>numberA</code> 和 <code>numberB</code>，其中一种办法是使用 <code>.call()</code> 方法。</p>
+
+<div><pre><code>
+    var numbers = {  
+       numberA: 5,
+       numberB: 10,
+       sum: function() {
+         console.log(this === numbers); // =&gt; true
+         function calculate() {
+           console.log(this === numbers); // =&gt; true
+           return this.numberA + this.numberB;
+         }
+         // 使用 .call() 方法修改上下文环境
+         return calculate.call(this);
+       }
+    };
+    numbers.sum(); // =&gt; 15  </code></pre></div>
+
+<p><code>calculate.call(this)</code> 同样执行 <code>calculate</code> 函数，但是格外的添加了 <code>this</code>作为第一个参数，修改了上下文执行环境。此时的 <code>this.numberA + this.numberB</code> 等同于 <code>numbers.numberA + numbers.numberB</code>，其最终的结果就会如期盼的一样为 <code>result 5 + 10 = 15</code>。</p>
+
+<h3>3. 方法调用</h3>
+
+<p>方法是作为一个对象属性存储的函数，举个例子：</p>
+
+<div><pre><code>
+    var myObject = {  
+      // helloFunction 是对象中的方法
+      helloFunction: function() {
+        return &#039;Hello World!&#039;;
+      }
+    };
+    var message = myObject.helloFunction();  </code></pre></div>
+
+<p><code>helloFunction</code> 是属于 <code>myObject</code> 的一个方法，调用这个方法可以使用属性访问的方式 <code>myObject.helloFunction</code>。</p>
+
+<p>方法调用表现为对象属性访问的形式，支持传入用成对引号包裹起来的一系列参数。上个例子中，<code>myObject.helloFunction()</code> 其实就是对象 <code>myObject</code> 上对属性 <code>helloFunction</code> 的方法调用。同样，<code>[1, 2].join(&#039;,&#039;)</code> 和 <code>/\s/.test(&#039;beautiful world&#039;)</code> 都是方法调用。</p>
+
+<p>区分函数调用和方法调用是非常重要的，它们是不同类型的调用方式。主要的差别在于方法调用为访问属性的形式，如：<code>&lt;expression&gt;.functionProperty()</code> 或者 <code>&lt;expression&gt;[&#039;functionProperty&#039;]()</code>，而函数调用为 <code>&lt;expression&gt;()</code>。</p>
+
+<div><pre><code>
+    [&#039;Hello&#039;, &#039;World&#039;].join(&#039;, &#039;); // 方法调用
+    ({ ten: function() { return 10; } }).ten(); // 方法调用
+    var obj = {};  
+    obj.myFunction = function() {  
+      return new Date().toString();
+    };
+    obj.myFunction(); // 方法调用
+
+    var otherFunction = obj.myFunction;  
+    otherFunction();     // 函数调用  
+    parseFloat(&#039;16.60&#039;); // 函数调用  
+    isNaN(0);            // 函数调用  </code></pre></div>
+
+<h4>3.1. 方法调用中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is the <strong>object that owns the method</strong> in a method invocation</p>
+</blockquote>
+
+<p>当在一个对象里调用方法时，<code>this</code> 代表的是对象它自身。让我们创建一个对象，其包含一个可以递增属性的方法。</p>
+
+<div><pre><code>    var calc = {  
+      num: 0,
+      increment: function() {
+        console.log(this === calc); // =&gt; true
+        this.num += 1;
+        return this.num;
+      }
+    };
+    // 方法调用，this 指向 calc
+    calc.increment(); // =&gt; 1  
+    calc.increment(); // =&gt; 2  </code></pre></div>
+
+<p><code>calc.increment()</code> 调用意味着上下文执行环境在 <code>calc</code> 对象里，因此使用 <code>this.sum</code> 递增 <code>num</code> 这个属性是可行的。</p>
+
+<p>一个 JavaScript 对象继承方法来自于它自身的属性。当一个被继承方法在对象中调用时，上下文执行环境同样是对象本身。</p>
+
+<div><pre><code>
+    var myDog = Object.create({  
+      sayName: function() {
+        console.log(this === myDog); // =&gt; true
+        return this.name;
+      }
+    });
+    myDog.name = &#039;Milo&#039;;  
+    // 方法调用， this 指向 myDog
+    myDog.sayName(); // =&gt; &#039;Milo&#039;  </code></pre></div>
+
+<p><code>Object.create()</code> 创建了一个新的对象 <code>myDog</code> 并且设置了属性，<code>myDog</code> 对象继承了 <code>myName</code>方法。当 <code>myDog.sayName()</code> 被执行时，上下文执行环境指向 <code>myDog</code>。</p>
+
+<p>在 ECMAScript 5 的 <code>class</code> 语法中， 方法调用指的是实例本身。</p>
+
+<div><pre><code>
+    class Planet {  
+      constructor(name) {
+        this.name = name;    
+      }
+      getName() {
+        console.log(this === earth); // =&gt; true
+        return this.name;
+      }
+    }
+    var earth = new Planet(&#039;Earth&#039;);  
+    // 方法调用，上下文为 earth
+    earth.getName(); // =&gt; &#039;Earth&#039;  </code></pre></div>
+
+<h4>3.2. 陷阱：方法会分离它自身的对象</h4>
+
+<p>一个对象中的方法可能会被提取抽离成一个变量。当使用这个变量调用方法时，开发者可能会误认为 <code>this</code> 指向的还是定义该方法时的对象。</p>
+
+<p>如果方法调用不依靠对象，那么就是一个函数调用，即 <code>this</code> 指向全局对象 <code>object</code> 或者在严格模式下为 <code>undefined</code>。创建函数绑定可以修复上下文，使该方法被正确对象调用。</p>
+
+<p>下面的例子创建了构造器函数 <code>Animal</code> 并且创建了一个实例 <code>myCat</code>，在 <code>setTimeout()</code> 定时器 1s 后打印 <code>myCat</code> 对象信息。</p>
+
+<div><pre><code>    function Animal(type, legs) {  
+      this.type = type;
+      this.legs = legs;  
+      this.logInfo = function() {
+        console.log(this === myCat); // =&gt; false
+        console.log(&#039;The &#039; + this.type + &#039; has &#039; + this.legs + &#039; legs&#039;);
+      }
+    }
+    var myCat = new Animal(&#039;Cat&#039;, 4);  
+    // 打印出 &quot;The undefined has undefined legs&quot;
+    // 或者在严格模式下抛出错误 TypeError
+    setTimeout(myCat.logInfo, 1000);  </code></pre></div>
+
+<p>开发者可能认为在 <code>setTimeout</code> 下调用 <code>myCat.logInfo()</code> 会打印出 <code>myCat</code> 对象的信息。但实际上这个方法被分离了出来作为了参数传入函数内 <code>setTimeout(myCat.logInfo)</code>，然后 1s 后会发生函数调用。当 <code>logInfo</code> 被作为函数调用时，<code>this</code> 指向全局对象 <code>window</code> 或者在严格模式下为 <code>undefined</code>，因此对象信息没有正确地被打印。</p>
+
+<p>方法绑定可以使用 <code>.bind()</code> 方法。如果被分离的方法绑定了 <code>myCat</code> 对象，那么上下文问题就可以被解决了：</p>
+
+<div><pre><code>
+    function Animal(type, legs) {  
+      this.type = type;
+      this.legs = legs;  
+      this.logInfo = function() {
+        console.log(this === myCat); // =&gt; true
+        console.log(&#039;The &#039; + this.type + &#039; has &#039; + this.legs + &#039; legs&#039;);
+      };
+    }
+    var myCat = new Animal(&#039;Cat&#039;, 4);  
+    // 打印 &quot;The Cat has 4 legs&quot;
+    setTimeout(myCat.logInfo.bind(myCat), 1000); </code></pre></div>
+
+<p>此时，<code>myCat.logInfo.bind(myCat)</code> 返回的新函数调用里的 <code>this</code> 指向了 <code>myCat</code>。</p>
+
+<h3>4. 构造函数调用</h3>
+
+<p>构造函数调用使用 <code>new</code> 关键词，后面跟随可带参数的对象表达式，例：<code>new RegExp(&#039;\\d&#039;)</code>。</p>
+
+<p>以下的例子声明了一个构造函数 <code>Country</code>，并调用。</p>
+
+<div><pre><code>
+    function Country(name, traveled) {  
+      this.name = name ? this.name : &#039;United Kingdom&#039;;
+      this.traveled = Boolean(traveled); // 转换为 boolean 值
+    }
+    Country.prototype.travel = function() {  
+      this.traveled = true;
+    };
+    // 构造函数调用
+    var france = new Country(&#039;France&#039;, false);  
+    // 构造函数调用
+    var unitedKingdom = new Country;
+
+    france.travel(); // Travel to France </code></pre></div>
+
+<p><code>new City(&#039;Paris&#039;)</code> 是一个构造器调用，这个对象初始化使用了类中特殊的方法 <code>constructor</code>，其中的 <code>this</code> 指向的是新创建的对象。</p>
+
+<p>构造器调用创建了一个空的新对象，从构造器的原型中继承属性。这个构造器函数的意义在于初始化对象，因此这个类型的函数调用创建实例。</p>
+
+<p>当一个属性访问 <code>myObject.myFunction</code> 前拥有 <code>new</code> 关键词，那么 JavaScript 会执行构造器调用而不是方法调用。举个例子：<code>new myObject.myFunction()</code> 意味着首先这个函数会解析为一个属性访问函数 <code>extractedFunction = myObject.myFunction</code>，然后用构造器创建一个新对象 <code>new extractedFunction</code>。</p>
+
+<h4>4.1. 在构造函数调用中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is the <strong>newly created object</strong> in a constructor invocation</p>
+</blockquote>
+
+<p>构造器调用的环境是新创建的对象。通过传递构造函数参数来初始化新建的对象，添加属性初始化值以及事件处理器。</p>
+
+<p>让我们来验证以下这个例子的上下文环境：</p>
+
+<div><pre><code>
+    function Foo () {  
+      console.log(this instanceof Foo); // =&gt; true
+      this.property = &#039;Default Value&#039;;
+    }
+    // 构造函数调用
+    var fooInstance = new Foo();  
+    fooInstance.property; // =&gt; &#039;Default Value&#039;  </code></pre></div>
+
+<p><code>new Foo()</code> 建立构造器调用，它的上下文环境为 <code>fooInstance</code>，在 <code>Foo</code> 对象中初始化了 <code>this.property</code> 这个属性并赋予初始值。</p>
+
+<p>在使用 <code>class</code> 语法时也是同样的情况（在 ES6 中），初始化只发生在它的 <code>constructor</code> 方法中。</p>
+
+<div><pre><code>
+    class Bar {  
+      constructor() {
+        console.log(this instanceof Bar); // =&gt; true
+        this.property = &#039;Default Value&#039;;
+      }
+    }
+    // 构造函数调用
+    var barInstance = new Bar();  
+    barInstance.property; // =&gt; &#039;Default Value&#039; </code></pre></div>
+
+<p>当执行 <code>new Bar()</code> 时，JavaScript 创建了一个空对象并且它的上下文环境为 <code>constructor</code> 方法，因此添加属性的办法是使用 <code>this</code> 关键词：<code>this.property = &#039;Default Value&#039;</code>。</p>
+
+<h4>4.2. 陷阱：忘记添加 <code>new</code> 关键词</h4>
+
+<p>一些 JavaScript 函数创建实例，不仅仅可以使用构造器的形式调用也可以利用函数调用，下面是一个 <code>RegExp</code> 的例子：</p>
+
+<div><pre><code>
+    var reg1 = new RegExp(&#039;\\w+&#039;);  
+    var reg2 = RegExp(&#039;\\w+&#039;);
+
+    reg1 instanceof RegExp;      // =&gt; true  
+    reg2 instanceof RegExp;      // =&gt; true  
+    reg1.source === reg2.source; // =&gt; true  </code></pre></div>
+
+<p>当执行 <code>new RegExp(&#039;\\w+&#039;)</code> 和 <code>RegExp(&#039;\\w+&#039;)</code> 时，JavaScript 创建了两个相等的普通表达式对象。</p>
+
+<p>但是使用函数调用创建对象会产生潜在的问题(包括<a href="http://javascript.info/tutorial/factory-constructor-pattern">工厂模式</a>)，当失去了 <code>new</code> 关键词，一些构造器会取消初始化对象。</p>
+
+<p>以下例子描述了这个问题：</p>
+
+<div><pre><code>
+    function Vehicle(type, wheelsCount) {  
+      this.type = type;
+      this.wheelsCount = wheelsCount;
+      return this;
+    }
+    // 函数调用
+    var car = Vehicle(&#039;Car&#039;, 4);  
+    car.type;              // =&gt; &#039;Car&#039;  
+    car.wheelsCount // =&gt; 4  
+    car === window  // =&gt; true </code></pre></div>
+
+<p><code>Vehicle</code> 是一个在对象上设置了 <code>type</code> 和 <code>wheelsCount</code> 属性的函数。</p>
+
+<p>当执行了 <code>Vehicle(&#039;Car&#039;, 4)</code> 时，会返回对象 <code>car</code>，它拥有正确的属性值：<code>car.type</code> 指向 <code>Car</code>，<code>car.wheelsCount</code> 指向 <code>4</code>，开发者会误以为这样创建初始化对象没有什么问题。<br>
+然而，当前执行的是函数调用，因此 <code>this</code> 指向的是 <code>window</code> 对象，所以它设置的属性其实是挂在 <code>window</code> 对象上的，这样是完全错误的，它并没有创建一个新对象。</p>
+
+<p>应该正确的执行方式是使用 <code>new</code> 关键词来保证构造器被正确调用：</p>
+
+<div><pre><code>
+    function Vehicle(type, wheelsCount) {  
+      if (!(this instanceof Vehicle)) {
+        throw Error(&#039;Error: Incorrect invocation&#039;);
+      }
+      this.type = type;
+      this.wheelsCount = wheelsCount;
+      return this;
+    }
+    // 构造函数调用
+    var car = new Vehicle(&#039;Car&#039;, 4);  
+    car.type                      // =&gt; &#039;Car&#039;  
+    car.wheelsCount        // =&gt; 4  
+    car instanceof Vehicle // =&gt; true
+
+    // 函数调用，会报错。
+    var brokenCat = Vehicle(&#039;Broken Car&#039;, 3); </code></pre></div>
+
+<p><code>new Vehicle(&#039;Car&#039;, 4)</code> 可以正确运行：一个新的对象被创建和初始化，因为 <code>new</code> 关键词代表了当前为构造器调用。<br>
+在构造器函数中添加验证：<code>this instanceof Vehicle</code>，可以保证当前的执行上下文是正确的对象类型。如果 <code>this</code> 不是指向 <code>Vehicle</code>，那么就存在错误。 如果 <code>Vehicle(&#039;Broken Car&#039;, 3)</code> 表达式没有 <code>new</code> 关键词而被执行，就会抛出错误：<code>Error: Incorrect invocation</code>。</p>
+
+<h3>5. 间接调用</h3>
+
+<p>间接调用表现为当一个函数使用了 <code>.call()</code> 或者 <code>.apply()</code> 方法。</p>
+
+<p>在 JavaScript 中，函数为一等对象，这意味着函数是一个对象，对象类型即为 <code>Function</code>。<br>
+在<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function#Methods">函数的一系列方法</a>中，<code>.call()</code> 和 <code>.apply()</code> 被用来配置当前调用的上下文环境。</p>
+
+<p>方法 <code>.call(thisArg[, arg1[, arg2[, ...]]])</code> 接收第一个参数 <code>thisArg</code> 作为执行的上下文环境，以及一系列参数 <code>arg1, arg2, ...</code>作为函数的传参被调用。<br>
+并且，方法 <code>.apply(thisArg, [args])</code> 接收 <code>thisArg</code>作为上下文环境，剩下的参数可以用类数组对象 <code>[args]</code> 传递。</p>
+
+<p>间接调用的例子：</p>
+
+<div><pre><code>
+    function increment(number) {  
+      return ++number;  
+    }
+    increment.call(undefined, 10);    // =&gt; 11  
+    increment.apply(undefined, [10]); // =&gt; 11  </code></pre></div>
+
+<p><code>increment.call()</code> 和 <code>increment.apply()</code> 同时传递了参数 <code>10</code> 调用 <code>increment</code> 函数。</p>
+
+<p>两个方法最主要的区别为 <code>.call()</code> 接收一组参数，如 <code>myFunction.call(thisValue, &#039;value1&#039;, &#039;value2&#039;)</code>，而 <code>.apply()</code> 接收一串参数作为类数组对象传递，如 <code>myFunction.apply(thisValue, [&#039;value1&#039;, &#039;value2&#039;])</code>。</p>
+
+<h4>5.1. 间接调用中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is the <strong>first argument</strong> of <code>.call()</code> or <code>.apply()</code> in an indirect invocation</p>
+</blockquote>
+
+<p>很明显，在间接调用中，<code>this</code> 指向的是 <code>.call()</code> 和 <code>.apply()</code>传递的第一个参数。</p>
+
+<div><pre><code>
+    var rabbit = { name: &#039;White Rabbit&#039; };  
+    function concatName(string) {  
+      console.log(this === rabbit); // =&gt; true
+      return string + this.name;
+    }
+    // 间接调用
+    concatName.call(rabbit, &#039;Hello &#039;);  // =&gt; &#039;Hello White Rabbit&#039;  
+    concatName.apply(rabbit, [&#039;Bye &#039;]); // =&gt; &#039;Bye White Rabbit&#039;  </code></pre></div>
+
+<p>当函数执行需要特别指定上下文时，间接调用非常有用，它可以解决函数调用中的上下文问题（<code>this</code> 指向 <code>window</code> 或者严格模式下指向 <code>undefined</code>），同时也可以用来模拟方法调用对象。</p>
+
+<p>另一个实践例子为，在 ES5 中的类继承中，调用父级构造器。</p>
+
+<div><pre><code>
+    function Runner(name) {  
+      console.log(this instanceof Rabbit); // =&gt; true
+      this.name = name;  
+    }
+    function Rabbit(name, countLegs) {  
+      console.log(this instanceof Rabbit); // =&gt; true
+      // 间接调用，调用了父级构造器
+      Runner.call(this, name);
+      this.countLegs = countLegs;
+    }
+    var myRabbit = new Rabbit(&#039;White Rabbit&#039;, 4);  
+    myRabbit; // { name: &#039;White Rabbit&#039;, countLegs: 4 }  </code></pre></div>
+
+<p><code>Runner.call(this, name)</code> 在 <code>Rabbit</code> 里间接调用了父级方法初始化对象。</p>
+
+<h3>6. 绑定函数调用</h3>
+
+<p>绑定函数调用是将函数绑定一个对象，它是一个原始函数使用了 <code>.bind()</code> 方法。原始绑定函数共享相同的代码和作用域，但是在执行时拥有不同的上下文环境。</p>
+
+<p>方法 <code>.bind(thisArg[, arg1[, arg2[, ...]]])</code> 接收第一个参数 <code>thisArg</code> 作为绑定函数在执行时的上下文环境，以及一组参数 <code>arg1, arg2, ...</code> 作为传参传入函数中。 它返回一个新的函数，绑定了 <code>thisArg</code>。</p>
+
+<p>下列代码创建了一个绑定函数并在之后被调用：</p>
+
+<div><pre><code>
+    function multiply(number) {  
+      &#039;use strict&#039;;
+      return this * number;
+    }
+    // 创建绑定函数，绑定上下文2
+    var double = multiply.bind(2);  
+    // 调用间接调用
+    double(3);  // =&gt; 6  
+    double(10); // =&gt; 20</code></pre></div>
+
+<p><code>multiply.bind(2)</code> 返回一个新的函数对象 <code>double</code>，它绑定了数字 <code>2</code>。<code>multiply</code> 和 <code>double</code> 函数拥有相同的代码和作用域。</p>
+
+<p>对比方法 <code>.apply()</code> 和 <code>.call()</code>，它俩都立即执行了函数，而 <code>.bind()</code> 函数返回了一个新方法，绑定了预先指定好的 <code>this</code> ，并可以延后调用。</p>
+
+<h4>6.1. 绑定函数中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is the <strong>first argument</strong> of <code>.bind()</code> when invoking a bound function</p>
+</blockquote>
+
+<p><code>.bind()</code> 方法的作用是创建一个新的函数，执行时的上下文环境为 <code>.bind()</code> 传递的第一个参数，它允许创建预先设置好 <code>this</code> 的函数。</p>
+
+<p>让我们来看看在绑定函数中如何设置 <code>this</code> ：</p>
+
+<div><pre><code>
+    var numbers = {  
+      array: [3, 5, 10],
+      getNumbers: function() {
+        return this.array;    
+      }
+    };
+    // 创建一个绑定函数
+    var boundGetNumbers = numbers.getNumbers.bind(numbers);  
+    boundGetNumbers(); // =&gt; [3, 5, 10]  
+    // 从对象中抽取方法
+    var simpleGetNumbers = numbers.getNumbers;  
+    simpleGetNumbers(); // =&gt; undefined 或者严格模式下抛出错误</code></pre></div>
+
+<p><code>numbers.countNumbers.bind(numbers)</code> 返回了绑定 <code>numbers</code> 对象的函数 <code>boundGetNumbers</code>，它在调用时的 <code>this</code> 指向的是 <code>numbers</code> 并且返回正确的数组对象。</p>
+
+<p><code>.bind()</code> 创建了一个永恒的上下文链并不可修改。一个绑定函数即使使用 <code>.call()</code> 或者 <code>.apply()</code>传入其他不同的上下文环境，也不会更改它之前连接的上下文环境，重新绑定也不会起任何作用。<br>
+只有在构造器调用时，绑定函数可以改变上下文，然而这并不是特别推荐的做法。</p>
+
+<p>下面这个例子声明了一个绑定函数，然后试图更改其预定上下文的情况：</p>
+
+<div><pre><code>
+    function getThis() {  
+      &#039;use strict&#039;;
+      return this;
+    }
+    var one = getThis.bind(1);  
+    // 绑定函数调用
+    one(); // =&gt; 1  
+    // 使用 .apply() 和 .call() 绑定函数
+    one.call(2);  // =&gt; 1  
+    one.apply(2); // =&gt; 1  
+    // 重新绑定
+    one.bind(2)(); // =&gt; 1  
+    // 利用构造器方式调用绑定函数
+    new one(); // =&gt; Object  </code></pre></div>
+
+<p>只有 <code>new one()</code> 时可以改变绑定函数的上下文环境，其他类型的调用结果是 <code>this</code> 永远指向 <code>1</code>。</p>
+
+<h3>7. 箭头函数</h3>
+
+<p>箭头函数的设计意图是以精简的方式创建函数，并绑定定义时的上下文环境。</p>
+
+<div><pre><code>
+    var hello = (name) =&gt; {  
+      return &#039;Hello &#039; + name;
+    };
+    hello(&#039;World&#039;); // =&gt; &#039;Hello World&#039;  
+    // 保留偶数
+    [1, 2, 5, 6].filter(item =&gt; item % 2 === 0); // =&gt; [2, 6]</code></pre></div>
+
+<p>箭头函数使用了轻便的语法，去除了关键词 <code>function</code> 的书写，甚至当函数只有一个句子时，可以省去 <code>return</code> 不写。</p>
+
+<p>箭头函数是匿名的，意味着函数的属性 <code>name</code> 是一个空字符串 <code>&#039;&#039;</code>，它没有一个词汇式的函数名，意味着不利于使用递归或者解除事件处理。</p>
+
+<p>同时它不同于普通函数，它不提供 <code>arguments</code> 对象，在 ES6 中可以用另外的参数代替：</p>
+
+<div><pre><code>
+    var sumArguments = (...args) =&gt; {  
+      console.log(typeof arguments); // =&gt; &#039;undefined&#039;
+      return args.reduce((result, item) =&gt; result + item);
+    };
+    sumArguments.name      // =&gt; &#039;&#039;  
+    sumArguments(5, 5, 6); // =&gt; 16  </code></pre></div>
+
+<h4>7.1. 箭头函数中的 <code>this</code>
+</h4>
+
+<blockquote>
+<p><code>this</code> is the <strong>enclosing</strong> context where the arrow function is defined</p>
+</blockquote>
+
+<p>箭头函数并不创建它自身执行的上下文，使得 <code>this</code> 取决于它在定义时的外部函数。</p>
+
+<p>下面的例子表示了上下文的透明属性：</p>
+
+<div><pre><code>
+    class Point {  
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+      }
+      log() {
+        console.log(this === myPoint); // =&gt; true
+        setTimeout(()=&gt; {
+          console.log(this === myPoint);      // =&gt; true
+          console.log(this.x + &#039;:&#039; + this.y); // =&gt; &#039;95:165&#039;
+        }, 1000);
+      }
+    }
+    var myPoint = new Point(95, 165);  
+    myPoint.log(); </code></pre></div>
+
+<p><code>setTimeout</code> 调用了箭头函数，它的上下文和 <code>log()</code>方法一样都是 <code>myPoint</code> 对象。<br>
+可以看出来，箭头函数“继承”了它在定义时的函数上下文。</p>
+
+<p>如果尝试在上述例子中使用正常函数，那么它会创建自身的作用域（<code>window</code> 或者严格模式下 <code>undefined</code>）。因此，要使同样的代码可以正确运行就必须人工绑定上下文，即 <code>setTimeout(function() {...}.bind(this))</code>。使用箭头函数就可以省略这么详细的函数绑定，用更加干净简短的代码绑定函数。</p>
+
+<p>如果箭头函数在最外层作用域定义，那么上下文环境将永远是全局对象，一般来说在浏览器中即为 <code>window</code>。</p>
+
+<div><pre><code>
+    var getContext = () =&gt; {  
+      console.log(this === window); // =&gt; true
+      return this;
+    };
+    console.log(getContext() === window); // =&gt; true  </code></pre></div>
+
+<p>箭头函数一次绑定上下文后便不可更改，即使使用了上下文更改的方法：</p>
+
+<div><pre><code>
+    var numbers = [1, 2];  
+    (function() {  
+      var get = () =&gt; {
+        console.log(this === numbers); // =&gt; true
+        return this;
+      };
+      console.log(this === numbers); // =&gt; true
+      get(); // =&gt; [1, 2]
+      // 箭头函数使用 .apply() 和 .call()
+      get.call([0]);  // =&gt; [1, 2]
+      get.apply([0]); // =&gt; [1, 2]
+      // Bind
+      get.bind([0])(); // =&gt; [1, 2]
+    }).call(numbers);</code></pre></div>
+
+<p>函数表达式可以间接调用 <code>.call(numbers)</code> 让 <code>this</code> 指向 <code>numbers</code>，然而 <code>get</code> 箭头函数的 <code>this</code> 也是指向 <code>numbers</code> 的， 因为它绑定了定义时的外部函数。</p>
+
+<p>无论怎么调用 <code>get</code> 函数，它的初始化上下文始终是 <code>numbers</code>，间接地调用其他上下文（使用 <code>.call()</code> 或者 <code>.apply()</code>），或者重新绑定上下文（使用 <code>.bind()</code>）都没有任何作用。</p>
+
+<p>箭头函数不可以用作构造器，如果使用 <code>new get()</code> 作构造器调用，JavaScript 会抛出错误：<code>TypeError: get is not a constructor</code>。</p>
+
+<h4>7.2. 陷阱：使用箭头函数定义方法</h4>
+
+<p>开发者可能会想使用箭头函数在对象中声明方法，箭头函数的声明(<code>(param) =&gt; {...}</code>)要比函数表达式的声明（<code>function(param) {...}</code>）简短的多。</p>
+
+<p>下面的例子在类 <code>Period</code> 中 使用箭头函数定义了方法 <code>format()</code>：</p>
+
+<div><pre><code>
+    function Period (hours, minutes) {  
+      this.hours = hours;
+      this.minutes = minutes;
+    }
+    Period.prototype.format = () =&gt; {  
+      console.log(this === window); // =&gt; true
+      return this.hours + &#039; hours and &#039; + this.minutes + &#039; minutes&#039;;
+    };
+    var walkPeriod = new Period(2, 30);  
+    walkPeriod.format(); // =&gt; &#039;undefined hours and undefined minutes&#039; </code></pre></div>
+
+<p>当 <code>format</code> 是一个箭头函数， 且被定义在全局环境下，它的 <code>this</code> 指向的是 <code>window</code> 对象。</p>
+
+<p>即使 <code>format</code> 执行的时候挂载在对象上 <code>walkPeriod.format()</code>，<code>window</code> 对象依旧存在在调用的上下文环境中。这是因为箭头函数拥有静态的上下文环境，不会因为不同的调用而改变。</p>
+
+<p><code>this</code> 指向的是 <code>window</code>，因此 <code>this.hour</code> 和 <code>this.minutes</code> 都是 <code>undefined</code>。方法返回的结果为：<code>&#039;undefined hours and undefined minutes&#039;</code>。</p>
+
+<p>正确的函数表达式可以解决这个问题，因为普通函数可以改变调用时的上下文环境：</p>
+
+<div><pre><code>
+    function Period (hours, minutes) {  
+      this.hours = hours;
+      this.minutes = minutes;
+    }
+    Period.prototype.format = function() {  
+      console.log(this === walkPeriod); // =&gt; true
+      return this.hours + &#039; hours and &#039; + this.minutes + &#039; minutes&#039;;
+    };
+    var walkPeriod = new Period(2, 30);  
+    walkPeriod.format(); // =&gt; &#039;2 hours and 30 minutes&#039;  </code></pre></div>
+
+<p><code>walkPeriod.format()</code> 是一个在对象中的方法调用，它的上下文环境为 <code>walkPeriod</code>，<code>this.hours</code> 指向 <code>2</code>，<code>this.minutes</code> 指向 <code>30</code>，因此可以返回正确的结果：<code>&#039;2 hours and 30 minutes&#039;</code>。 </p>
+
+<h3>8. 结论</h3>
+
+<p>因为函数调用会极大地影响到 <code>this</code>，所以从现在开始不要直接问自己：</p>
+
+<blockquote>
+<p><code>this</code> 是从哪里来的？</p>
+</blockquote>
+
+<p>而是要开始思考：</p>
+
+<blockquote>
+<p>当前函数是怎么被调用的？</p>
+</blockquote>
+
+<p>遇到箭头函数时，考虑：</p>
+
+<blockquote>
+<p>当箭头函数被定义时，<code>this</code> 是指向什么？</p>
+</blockquote>
+
+<p>以上思路可以帮助开发者减少判断 <code>this</code> 带来的烦恼。</p>
+
+<p>如果你有关于上下文陷阱更加有趣的案例或者遇到一些棘手的情况欢迎评论，一起讨论！</p>
+<h3>指正</h3>
+<p>在第三部分的地方有错误：
+主要的差别在于方法调用为访问属性的形式，如：<expression>.functionProperty() 或者 <expression>['functionProperty']()，而函数调用不存在 <expression>()。 你应该是想写方法调用不存在<expression>()的吧</expression></expression></expression></expression></p>
+      </div>
+    </div></div><p class="tags cloud"><a href="/tag/JavaScript" class="tag">JavaScript</a><a href="/tag/%E5%89%8D%E7%AB%AF" class="tag">前端</a></p><ul class="box-list recommended-entries"><div style="margin-bottom: 1em;" class="text-bold text-center">相关热门文章</div><li class="half"><a href="http://gold.xitu.io/entry/57fae25e2e958a00558f6d85"><div class="box-content"><div class="box-title text-left">一套包含 700+ 精致多样式的 APPUI 组件、界面下载 </div></div></a></li><li class="half"><a href="http://gold.xitu.io/entry/57fb373ad203090068c67883"><div class="box-content"><div class="box-title text-left">HTTP 缓存</div></div></a></li><li class="half"><a href="http://gold.xitu.io/entry/57fb0544128fe100546c26dd"><div class="box-content"><div class="box-title text-left">我也来说说 JS 的事件机制</div></div></a></li><li class="half"><a href="http://gold.xitu.io/entry/57fb37eca34131006013bc4e"><div class="box-content"><div class="box-title text-left">在网页上实现 3D Touch 效果</div></div></a></li></ul><a href="http://a.app.qq.com/o/simple.jsp?pkgname=com.daimajia.gold" target="_blank" style="display: block;"><p class="text-center"><img src="/images/android/yingyongbao.png" style="width: 8em;" class="entry-photo"></p></a><div id="iosWeiboTip" class="ios-weibo-tip"><img src="/images/app/weibo@2x.png" class="ios-weibo-tip-img"></div><footer style="padding: 1em;"><div style="position: relative;" class="container clearfix"><div class="entry-pop-up"><a href="http://a.app.qq.com/o/simple.jsp?pkgname=com.daimajia.gold" style="display: block;" class="pop-up-content">前端高手都在看</a></div><a href="http://gold.xitu.io/about"><img src="/images/logo-bold.svg" class="inline"><span style="font-size: .9em; color: #b4b4b4;">技术·设计·产品</span></a><a style="margin-top: -.3em; margin-bottom: -.3em; line-height: 2em;" onClick="gaDownloadClick()" class="button float-right inline app-download-button">打开应用</a></div></footer></div><script src="/build/entry-content.js"></script><script>(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';   
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-57015356-3', 'auto');
+ga('send', 'pageview');</script></body></html>
