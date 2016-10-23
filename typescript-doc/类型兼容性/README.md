@@ -1,0 +1,1 @@
+http://www.tslang.cn/docs/handbook/type-compatibility.html
